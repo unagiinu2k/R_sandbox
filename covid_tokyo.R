@@ -80,7 +80,7 @@ if (F) {
 df_pop = read_tsv("pop.tsv")
 lf0 = lf0 %>% left_join(df_pop)
 lf0 = lf0 %>% mutate(p2p = n_patient / pop ,
-                     diff7to_p = diff7 / pop)
+                     diff7p = diff7 / pop)
 
 
 
@@ -91,17 +91,19 @@ lf0 = lf0 %>% mutate(p2p = n_patient / pop ,
     #geom_text_repel(data = lf0 %>% group_by(name) %>% filter(Date == max(Date)) %>% ungroup)+
     theme_minimal() + 
     scale_x_date(date_labels = "%m/%d") +
+    scale_y_continuous(labels = scales::percent , limits = c(0,0.005) , oob = scales::squish) +
     #    expand_limits(x = as.Date("2020/8/1")) +
     guides(color = F))
 
 girafe(ggobj = g)
 
 
-(g = ggplot(lf0 , aes(x = Date , y = diff7 , color = name , tooltip = name, data_id = name))  + 
+(g = ggplot(lf0 , aes(x = Date , y = diff7p , color = name , tooltip = name, data_id = name))  + 
     #geom_line() + 
     geom_line_interactive() +
     theme_minimal() + 
     scale_x_date(date_labels = "%m/%d") +
+    scale_y_continuous(labels = scales::percent , limits = c(0,0.00075) , oob = scales::squish) +
     #    expand_limits(x = as.Date("2020/8/1")) +
     guides(color = F))
 
