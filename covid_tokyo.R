@@ -2,6 +2,7 @@ rm(list = ls())
 library(rjson)
 library(tidyverse)
 # https://github.com/codeforshinjuku/covid19
+# After running ./gitdata.sh patient > patient.json, copy patient.json to the R project directory.
 js0 = fromJSON(file = "patient.json")
 js0 %>% class
 js0 %>% names

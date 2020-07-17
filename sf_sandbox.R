@@ -12,3 +12,10 @@ st_sfc(p1 , crs = 4326) %>% class
 st_crs(p1)
 
 # https://r-spatial.github.io/sf/articles/sf1.html
+nc <- st_read(system.file("shape/nc.shp", package="sf"))
+nc
+nc %>% names
+nc %>% dim
+nc$geometry[1] %>% class
+st_crs(nc$geometry[1])
+nc %>% summary
