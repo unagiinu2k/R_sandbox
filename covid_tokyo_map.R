@@ -165,13 +165,15 @@ df_pop = read_tsv("pop.tsv")#%>% mutate(city_code = as.character(code5)) %>% sel
 
 
 lf1 = lf1 %>% left_join(df_pop)
-lf1 = lf1 %>% mutate(norm_diff7 = diff7/pop)
-targets  = c("diff7", "norm_diff7")
+lf1 = lf1 %>% mutate(norm_diff7 = diff7/pop , 
+                     norm_diff7b = norm_diff7 * 10000)
+targets  = c("diff7", "norm_diff7", "norm_diff7b")
 width = 1000
 height = 500
 library(glue)
 for (run_target  in targets) {
   lf1 = lf1 %>% mutate_(x = run_target)
+  maxx = lf1%>% filter(pop > 100000) %>% pull(x) %>% max(na.rm = T)
 
   
   anim = ggplot(lf1 %>% filter(Date  >= as.Date("2020-4-7"))) + 
@@ -183,7 +185,7 @@ for (run_target  in targets) {
           #plot.background = element_rect(colour = "black"), 
           plot.caption = element_text(size = 6)) +
     guides(color = F) + transition_time(time = Date) + 
-    scale_fill_distiller(palette = "Spectral") +
+    scale_fill_distiller(palette = "Spectral" , limits = c(0 , maxx)) +
     guides(fill = guide_legend(title = "new infections (seven days)  ")) +
     #ease_aes("sine-in-out") + 
     labs(title = "{frame_time}") +  theme(plot.title= element_text(hjust = 0.5 , size = 12)) +
