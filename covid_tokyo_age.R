@@ -24,7 +24,10 @@ age_order = c( "10歳未満"  ,"10代"    ,  "20代",
 
 sf = sf %>% mutate(患者_年代 = factor(患者_年代 , age_order))
 theme_set(theme_minimal())
-windowsFonts("YuGo" = windowsFont("游ゴシック"))　
+windowsFonts("YuGo" = windowsFont("游ゴシック"))
+windowsFonts("YuGo" = windowsFont("HG創英角ゴシックUB"))
+
+
 ggplot(sf %>% filter(公表_年月日 >= max(公表_年月日)- 20) , 
        aes(fill = 患者_年代 , x = 患者_年代 ,y  = n)) + geom_bar(stat = "identity")  + 
   labs(x = NULL , y = "daily new infections") + guides(fill = F)  + 

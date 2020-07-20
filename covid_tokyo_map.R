@@ -47,9 +47,31 @@ sf_pref13 <- jpndistrict::jpn_pref(13, district = T) %>%
   st_simplify(dTolerance = 0.001)
  
 lf1 = sf_pref13 %>% right_join(lf0)
-theme_set(theme_void())
+windowsFonts("HGP" = windowsFont("HGP創英角ゴシックUB"))
+windowsFonts("MEI"=windowsFont("Meiryo"))
+#windowsFonts("BIZ"=  windowsFont("BIZ UDPゴシック"))
+windowsFonts("BIZ"=  windowsFont("BIZ UDPGothic"))
+windowsFonts("POP"=  windowsFont("HGPSoeiKakupoptai"))
+if (F) {
+  theme_set(theme_void() +  theme(text = element_text(family ="run_font" ), 
+                                  plot.title= element_text(hjust = 0.5 , size = 14 , family ="YuGo" ) 
+                                  #,                                axis.text.x = element_text(angle = 45)
+  )
+  )
+}
+if (F) {
+  theme_set(theme_void(base_family = "MEI"))
+  theme_set(theme_void(base_family = "BIZ"))
+}
+theme_set(theme_void(base_family = "POP"))
+
 library(ggrepel)
-ggplot(lf1 %>% filter(Date == as.Date("2020-5-23"))) + 
+
+
+
+# https://yutani.rbind.io/post/geom-sf-text-and-geom-sf-label-are-coming/
+
+ggplot(lf1 %>% filter(Date == as.Date("2020-6-23"))) + 
   geom_sf(aes(fill =diff7)) + 
   xlim(138.9, 139.9) + ylim(35.5, 36) + 
   #geom_text_repel(aes(x  = lng, y = lat,label = city) , seed = 123) +   
@@ -60,11 +82,14 @@ ggplot(lf1 %>% filter(Date == as.Date("2020-5-23"))) +
         plot.caption = element_text(size = 6)) +
   scale_fill_distiller(palette = "Spectral") +
   guides(fill = guide_legend(title = "new patients (seven days)")) +
-  guides(color = F) +  theme(plot.title= element_text(hjust = 0.5)) + labs(title="a")
+  guides(color = F) +  theme(plot.title= element_text(hjust = 0.5)) + labs(title="テスト") + 
+  geom_sf_label(family = "POP" , aes(label = city) , size = 3.5   ,color  ="#333333" , 
+                label.size = 0 , label.padding = unit(0.3, "lines") , label.r = unit(0.7,"lines"))
+  #geom_text_repel(aes(label = city , geometry = geometry) ,   seed = 123, stat = "sf_coordinates" , size = 2 , color = "#555555")
 
 if (F) {
   
-  ggplot(lf1 %>% filter(Date >= max(Date) -3)) + 
+  ggplot(lf1 %>% filter(Date >= max(Date) -0)) + 
     geom_sf(aes(fill = diff7)) + 
     xlim(138.9, 139.9) + ylim(35.5, 36) + 
     theme(panel.border = element_blank(), 
@@ -72,30 +97,107 @@ if (F) {
           axis.ticks = element_blank(), 
           #plot.background = element_rect(colour = "black"), 
           plot.caption = element_text(size = 6)) +
-    
-    guides(color = F) + facet_wrap(~Date)
+    guides(color = F) + facet_wrap(~Date) + my_label
   
 }
 library(gifski)
 library(gganimate)
 library(transformr)
+if (F) {
+my_label = geom_sf_label(#data = lf1, # %>% filter(Date %in% c(min(Date) , max(Date))) , 
+                         aes(label = ifelse(Date %in% c(min(Date) , max(Date)) , 
+                               substring(str_replace(city ,"区|市|町|村|西多摩郡 ", "" ) , 1,100) , 
+                               NULL)) ,
+                         size = 3.5  , 
+                         #fill = NA ,
+                         color  ="#333333" , 
+                         label.size = 0 , label.padding = unit(0.3, "lines") , 
+                         label.r = unit(0.7,"lines"))
+} else {
+  
+  my_label = 
+    geom_label_repel(aes(label = ifelse(Date %in% c(min(Date) , max(Date)) , 
+                                        substring(str_replace_all(city ,"区|市|町|村|西多摩郡 ", "" ) , 1,100) , 
+                                        "")
+                         , geometry = geometry) ,   
+                     seed = 1123, stat = "sf_coordinates" , 
+                     size = 3 , 
+                     family = "POP", 
+                     force = 0.0 , 
+                     #fill = "#0000ff",
+                     segment.color = "#ffffff" ,
+                     #color = "#0000ff" , #"#555555" , 
+                     label.size = NA , label.padding = unit(0.15, "lines") , 
+                     label.r = unit(0.5,"lines"))
+  
+  my_label = 
+    geom_text_repel(aes(label = 
+                          substring(str_replace_all(city ,"区|市|町|村|西多摩郡 ", "" ) , 1,100) , 
+                        
+                        , geometry = geometry) ,   
+                    seed = 1123, stat = "sf_coordinates" , 
+                    size = 3 , 
+                    family = "POP", 
+                    force = 0.0 , 
+                    #fill = "#0000ff",
+                    segment.color = "#ffffff" ,
+                    color = "#2B83BA" #"#ffffff"  #"#555555" , 
+    )
+  my_label = 
+    geom_text_repel(aes(label = 
+                          substring(str_replace_all(city ,"区|市|村|西多摩郡 ", "" ) , 1,1) , 
+                        
+                        , geometry = geometry) ,   
+                    seed = 1123, stat = "sf_coordinates" , 
+                    size = 5 , 
+                    alpha = 1 , 
+                    family = "POP", 
+                    force = 0.0 , 
+                    #fill = "#0000ff",
+                    segment.color = "#777777" ,
+                    color = "#2B83BA" #"#999999"  #"#555555" , 
+    )
+  
+}
+
+#df_pop = read_csv("https://www.toukei.metro.tokyo.lg.jp/jinkouyosoku/ty20rv00rd.csv")
+df_pop = read_tsv("pop.tsv")#%>% mutate(city_code = as.character(code5)) %>% select(-code5)
 
 
+lf1 = lf1 %>% left_join(df_pop)
+lf1 = lf1 %>% mutate(norm_diff7 = diff7/pop)
+targets  = c("diff7", "norm_diff7")
+width = 1000
+height = 500
+library(glue)
+for (run_target  in targets) {
+  lf1 = lf1 %>% mutate_(x = run_target)
 
-anim = ggplot(lf1 %>% filter(Date  >= as.Date("2020-4-7"))) + 
-  geom_sf(aes(fill = diff7)) + 
-  xlim(138.9, 139.9) + ylim(35.5, 36) + 
-  theme(panel.border = element_blank(), 
-        axis.title = element_blank(), axis.text = element_blank(), 
-        axis.ticks = element_blank(), 
-        #plot.background = element_rect(colour = "black"), 
-        plot.caption = element_text(size = 6)) +
-  guides(color = F) + transition_time(time = Date) + 
-  scale_fill_distiller(palette = "Spectral") +
-  guides(fill = guide_legend(title = "new infections (seven days)  ")) +
-  #ease_aes("sine-in-out") + 
-  labs(title = "{frame_time}") +  theme(plot.title= element_text(hjust = 0.5 , size = 12))
-ga = animate(anim , fps = 1.5 , width = 800 , height = 250 , end_pause = 10)
-ga
-anim_save(filename = "covid_tokyo85.gif", ga)
+  
+  anim = ggplot(lf1 %>% filter(Date  >= as.Date("2020-4-7"))) + 
+    geom_sf(aes(fill = x) , alpha  =1) + 
+    xlim(138.9, 139.9) + ylim(35.5, 36) + 
+    theme(panel.border = element_blank(), 
+          axis.title = element_blank(), axis.text = element_blank(), 
+          axis.ticks = element_blank(), 
+          #plot.background = element_rect(colour = "black"), 
+          plot.caption = element_text(size = 6)) +
+    guides(color = F) + transition_time(time = Date) + 
+    scale_fill_distiller(palette = "Spectral") +
+    guides(fill = guide_legend(title = "new infections (seven days)  ")) +
+    #ease_aes("sine-in-out") + 
+    labs(title = "{frame_time}") +  theme(plot.title= element_text(hjust = 0.5 , size = 12)) +
+    my_label
+
+  ga = animate(anim , fps = 1.5 , width = width , height = height , end_pause = 10 , start_pause = 5)
+  ga
+  anim_save(filename = glue("covid_tokyo{width}x{height}_{run_target}.gif"), ga)
+  
+  if (F){
+    ga = animate(anim , fps = 1.5 , width = 1200 , height = 400 , end_pause = 10 , start_pause = 5)
+    ga
+    anim_save(filename = "covid_tokyo1200x400.gif", ga)
+  }
+}
+
 
