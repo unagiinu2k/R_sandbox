@@ -23,44 +23,62 @@ age_order = c( "10歳未満"  ,"10代"    ,  "20代",
 
 
 sf = sf %>% mutate(患者_年代 = factor(患者_年代 , age_order))
-theme_set(theme_minimal())
+
+
 windowsFonts("YuGo" = windowsFont("游ゴシック"))
 windowsFonts("YuGo" = windowsFont("HG創英角ゴシックUB"))
-
-
+windowsFonts("POP"=  windowsFont("HGPSoeiKakupoptai"))
+theme_set(theme_minimal(base_family = "POP"))
 ggplot(sf %>% filter(公表_年月日 >= max(公表_年月日)- 20) , 
        aes(fill = 患者_年代 , x = 患者_年代 ,y  = n)) + geom_bar(stat = "identity")  + 
   labs(x = NULL , y = "daily new infections") + guides(fill = F)  + 
   scale_fill_brewer(palette = "Paired")   +
-  theme(text = element_text(family ="YuGo" ), 
+  theme(text = element_text(#family ="YuGo"
+    ), 
     plot.title= element_text(hjust = 0.5 , size = 12) ,
         axis.text.x = element_text(angle = 45))
 library(gifski)
 library(gganimate)
 library(transformr)
-days = seq(from = max(sf$公表_年月日) , to = min(sf$公表_年月日)  , by = "-7 day") %>% sort
-anim = ggplot(sf %>% filter(公表_年月日 %in% days)  , aes(fill = 患者_年代 , x = 患者_年代 ,y  = weekly)) +
-  geom_bar(stat = "identity")  + 
-  labs(x = NULL , y = "weekly new infections" ,title = "一週間の都内新規感染者数\n{closest_state}") +
-  scale_fill_brewer(palette = "Paired")   + 
-  guides(fill = F) +
-  scale_y_continuous(labels = scales::comma) + 
-  transition_states(公表_年月日)  +
-  theme(text = element_text(family ="YuGo" ), 
-        plot.title= element_text(hjust = 0.5 , size = 14 , family ="YuGo" ) ,
-        axis.text.x = element_text(angle = 45))
+library(glue)
+experiments = data.frame(freq = c(1,7) , fps = c(20,5))
+for (i in 1:nrow(experiments)) {
+  freq = experiments$freq[i]
+  fps = experiments$fps[i]
+  days = seq(from = max(sf$公表_年月日) , to = min(sf$公表_年月日)  , by = glue("-{freq} day")) %>% sort
 
-ga = animate(anim , fps = 3 , width = 450 , height = 300 , end_pause = 20)
-ga
-anim_save(filename = "covid_tokyo_age.gif", ga)
+  anim = ggplot(sf %>% filter(公表_年月日 %in% days)  , aes(fill = 患者_年代 , x = 患者_年代 ,y  = weekly)) +
+    geom_bar(stat = "identity")  + 
+    labs(x = NULL , y = "weekly new infections" ,
+         #title = "一週間の都内新規感染者数\n{closest_state}"
+         title = "一週間の都内新規感染者数\n{current_frame}"
+         ) +
+    scale_fill_brewer(palette = "Paired")   + 
+    guides(fill = F) +
+    scale_y_continuous(labels = scales::comma) + 
+    #transition_states(公表_年月日)  +
+    transition_manual(公表_年月日) + 
+    theme(text = element_text(#family ="YuGo"
+                              ), 
+          plot.title= element_text(hjust = 0.5 , size = 14# , family ="YuGo"
+                                   ) ,
+          axis.text.x = element_text(angle = 45))
+  
+  ga = animate(anim , fps = fps , #nframes = length(days) * 10, 
+               width = 450 , height = 300 , end_pause = 20)
+  ga
+  anim_save(filename = glue("covid_tokyo_age_{i}.gif"), ga)
+}
 
-ggplot(sf %>% filter(公表_年月日 %in% days)  ,
-       aes(fill = 患者_年代 , x = 公表_年月日 ,y  = weekly)) +
-  geom_bar(stat = "identity" , position = "fill")  + 
-  scale_fill_brewer(palette = "Paired") + 
-  labs(x = NULL , y = "weekly new infections" ,title = "{closest_state}") +
-  guides(fill = F) +
-  scale_y_continuous(labels = scales::comma) + 
-  transition_states(公表_年月日)  + coord_flip() +
-  theme(plot.title= element_text(hjust = 0.5 , size = 12))
-
+if (F) {
+  ggplot(sf %>% filter(公表_年月日 %in% days)  ,
+         aes(fill = 患者_年代 , x = 公表_年月日 ,y  = weekly)) +
+    geom_bar(stat = "identity" , position = "fill")  + 
+    scale_fill_brewer(palette = "Paired") + 
+    labs(x = NULL , y = "weekly new infections" ,title = "{closest_state}") +
+    guides(fill = F) +
+    scale_y_continuous(labels = scales::comma) + 
+    transition_states(公表_年月日)  + coord_flip() +
+    theme(plot.title= element_text(hjust = 0.5 , size = 12))
+  
+}

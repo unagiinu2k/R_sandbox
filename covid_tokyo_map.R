@@ -167,11 +167,16 @@ df_pop = read_tsv("pop.tsv")#%>% mutate(city_code = as.character(code5)) %>% sel
 lf1 = lf1 %>% left_join(df_pop)
 lf1 = lf1 %>% mutate(norm_diff7 = diff7/pop , 
                      norm_diff7b = norm_diff7 * 10000)
-targets  = c("diff7", "norm_diff7", "norm_diff7b")
+
 width = 1000
 height = 500
 library(glue)
-for (run_target  in targets) {
+experiments = tibble(targets  = c("diff7", "norm_diff7", "norm_diff7b") ,
+                     add_header = c("(総数)" , "（人口一人あたり）" ,"(人口１万人あたり)" ))
+#for (run_target  in targets) {
+for (i in 1:nrow(experiments)) {
+  run_target = experiments$targets[i] 
+  run_add_header  =experiments$add_header[i]
   lf1 = lf1 %>% mutate_(x = run_target)
   maxx = lf1%>% filter(pop > 100000) %>% pull(x) %>% max(na.rm = T)
 
@@ -184,14 +189,19 @@ for (run_target  in targets) {
           axis.ticks = element_blank(), 
           #plot.background = element_rect(colour = "black"), 
           plot.caption = element_text(size = 6)) +
-    guides(color = F) + transition_time(time = Date) + 
+    guides(color = F) + 
+    #transition_time(time = Date) + 
+    #labs(title = "一週間の新規感染者数{run_add_header}\n{frame_time}") +  
+    transition_manual(Date) + 
+    labs(title = "一週間の新規感染者数{run_add_header}\n{current_frame}") +  
     scale_fill_distiller(palette = "Spectral" , limits = c(0 , maxx)) +
     guides(fill = guide_legend(title = "new infections (seven days)  ")) +
     #ease_aes("sine-in-out") + 
-    labs(title = "{frame_time}") +  theme(plot.title= element_text(hjust = 0.5 , size = 12)) +
+
+    theme(plot.title= element_text(hjust = 0.5 , size = 12)) +
     my_label
 
-  ga = animate(anim , fps = 1.5 , width = width , height = height , end_pause = 10 , start_pause = 5)
+  ga = animate(anim , fps = 2 , width = width , height = height , end_pause = 10 , start_pause = 5)
   ga
   anim_save(filename = glue("covid_tokyo{width}x{height}_{run_target}.gif"), ga)
   
