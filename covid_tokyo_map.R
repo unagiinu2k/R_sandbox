@@ -176,7 +176,7 @@ experiments = tibble(targets  = c("diff7", "norm_diff7", "norm_diff7b") ,
 #for (run_target  in targets) {
 for (i in 1:nrow(experiments)) {
   run_target = experiments$targets[i] 
-  run_add_header  =experiments$add_header[i]
+  run_add_header = experiments$add_header[i]
   lf1 = lf1 %>% mutate_(x = run_target)
   maxx = lf1%>% filter(pop > 100000) %>% pull(x) %>% max(na.rm = T)
 
@@ -206,7 +206,7 @@ for (i in 1:nrow(experiments)) {
   anim_save(filename = glue("covid_tokyo{width}x{height}_{run_target}.gif"), ga)
   
   if (F){
-    ga = animate(anim , fps = 1.5 , width = 1200 , height = 400 , end_pause = 10 , start_pause = 5)
+    ga = animate(anim , fps = 1.5 , width = 1200 , height = 400 , end_pause = as.integer(1.5 * fps) , start_pause = 5)
     ga
     anim_save(filename = "covid_tokyo1200x400.gif", ga)
   }
