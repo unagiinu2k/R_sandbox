@@ -63,6 +63,8 @@ lf1 = lf1 %>% mutate(name = factor(name , ordered_names))
 top_names  = ordered_names %>% tail(10) #%>% c("ex新宿")
 
 
+run_diff1 = lf1 %>% filter(name %in% top_names)%>% 
+  select(Date , name ,diff1)  %>% spread(key = name , value = diff1) 
 run_diff_diff1 = lf1 %>% filter(name %in% top_names)%>% 
   select(Date , name ,diff_diff1)  %>% spread(key = name , value = diff_diff1) 
 #run_diff_diff1 = run_diff_diff1 %>% mutate(ex新宿 = total - 新宿区)
@@ -79,8 +81,42 @@ ggplot(cor_dif_diff1_melt , aes(x  = Var1 , y = Var2 , fill = value)) + geom_til
 cor.test(run_diff_diff1%>% pull(新宿区), run_diff_diff1 %>% pull(世田谷区))
 ggplot(lf1 %>% dplyr::filter(name %in% c("新宿区" , "世田谷区"))   , 
        aes(color = name , x = Date , y = diff_diff1)) + geom_line()  
-ggplot(run_diff_diff1 , aes(x = 新宿区 ,  y = 世田谷区 , 
-                            label = as.character(Date))) + geom_line()   + geom_text_repel()
+(g = ggplot(run_diff_diff1 , aes(x = 新宿区 ,  y = 世田谷区 , 
+                            size = Date , alpha = Date , color = Date , 
+                            label = format(Date,  "%m/%d"))) +
+  geom_path() + 
+  #geom_point(aes(size = as.numeric(Date - min(Date))))  + 
+#  geom_point()  + 
+  geom_label() + guides(color = F , alpha = F , size = F))
+
+anim = g + transition_reveal(Date) #+ shadow_mark(color = "black" , alpha = 0.3)
+fps = 3
+ga = animate(anim , fps = fps , #nframes = length(days) * 10, 
+             width = 450 , height = 300 , end_pause = 1 * fps)
+if (F) {
+  ga = animate(anim , nframes = nrow(run_diff_diff1) * 2 , 
+               width = 450 , height = 300 , end_pause = 1 * fps)
+}
+ga
+anim_save(filename = glue("covid_tokyo_fluctuation_shinjuku_setagaya_diff_diff.gif"), ga)
+(g = ggplot(run_diff1 , aes(x = 新宿区 ,  y = 世田谷区 , 
+                            size = Date , alpha = Date , color = Date , 
+                            label = format(Date,  "%m/%d"))) +
+  geom_path() + 
+  #geom_point(aes(size = as.numeric(Date - min(Date))))  + 
+#  geom_point()  + 
+  geom_label() + guides(color = F , alpha = F , size = F))
+
+anim = g + transition_reveal(Date) #+ shadow_mark(color = "black" , alpha = 0.3)
+fps = 3
+ga = animate(anim , fps = fps , #nframes = length(days) * 10, 
+             width = 450 , height = 300 , end_pause = 1 * fps)
+
+ga
+anim_save(filename = glue("covid_tokyo_fluctuation_shinjuku_setagaya_diff.gif"), ga)
+
+
+
 # unit root test
 library(tseries)
 adf.test(run_diff_diff1$新宿区)

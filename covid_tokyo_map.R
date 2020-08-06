@@ -201,7 +201,8 @@ for (i in 1:nrow(experiments)) {
     theme(plot.title= element_text(hjust = 0.5 , size = 12)) +
     my_label
 
-  ga = animate(anim , fps = 2 , width = width , height = height , end_pause = 10 , start_pause = 5)
+  fps = 3
+  ga = animate(anim , fps = fps , width = width , height = height , end_pause = fps * 3 , start_pause = fps)
   ga
   anim_save(filename = glue("covid_tokyo{width}x{height}_{run_target}.gif"), ga)
   
